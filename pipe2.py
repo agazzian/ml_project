@@ -133,29 +133,38 @@ class Pipe(object):
             coeflst = [abs(c) if supp[i] else 0 for i,c in enumerate(estimator.scores_)]
         return coeflst
 
+
     def return_rank(self,*args):
-        """ returns the biomarker ranking of the best performing fitting algorithm """
-        biolst = [None for i in self.feat_names]
+        """
+        Returns the biomarker ranking of the best performing algorithm if no other estimator is given as input
+
+        The second argument of the function (optional) can be used to decalre another
+        sk.pipeline.Pipeline object from which to extract the biomarker rankings.
+        """
+
         if len(args) == 0:
             estimator = self._gridsearch.best_estimator_
-            self._biolst = biolst
         else:
             estimator = args[0]
 
-        for stepname in self._pipelst:
-            clst = Pipe.coeffs(estimator.named_steps[stepname])
-            if stepname == 'FDA':
-                clst = list(clst[0])
-            # add the scores to the biolst dictionary if they are not 0
-            print(clst)
-            counter = 0
-            for i,c in enumerate(biolst):
-                if c != 0:
-                    biolst[i] = clst[counter]
-                    counter += 1
+        counter = 0
+        for stepname in self._pipelst[::-1]:
+            # tle last step is the classificator
+            pipestep = estimator.named_steps[stepname]
+            if counter == 0:
+                clst = Pipe.coeffs(pipestep)
+                if stepname == 'FDA':
+                    clst = list(clst[0])
+            else:
+                # todo: add logistic regression as a preprocessing step
+                if hasattr(pipestep,'inverse_transform'):
+                    clst = pipestep.inverse_transform(np.array(clst).reshape(1,-1))[0]
+                else:
+                    print('ERROR:\tclassifier used as preprocessing step')
+            counter += 1
 
-
-        return biolst
+        # todo: write best performer onto self._biolst
+        return clst
 
     def return_ranks(self,tol,printtofile=False):
         """ returns the averaged biomarker rankings for all fits that perform within (tol*bestscore, bestscore)"""
@@ -204,18 +213,17 @@ if __name__ == '__main__':
 
     # initialize X and Y for tests
 
-
     wids = ['week_4','week_5','week_6','week_10']
 
-    ns,Xdata,Ydata = src.importd.importfile('../data/file.dat')
-    _, X, Y, _ = src.importd.filterd(ns,Xdata,Ydata,wids)
+    ns, Xdata,Ydata = src.importd.importfile('../data/file.dat')
+    ns, X, Y, _ = src.importd.filterd(ns,Xdata,Ydata,wids)
     _, names = src.importd.import_cnames('../data/file3.dat')
 
     # run automated tests
 
     #run an initialization test for a pipeline with pca and fda
     pipe = Pipe(X,Y,names,wids)
-    pipe.setpipe(['FFS','FDA'])
+    pipe.setpipe(['FFS','RF'])
 
     # cvcounter test
     print('Pipe.cvcounter =\t'+str(pipe.cvcounter))
@@ -223,8 +231,8 @@ if __name__ == '__main__':
     print(np.shape(np.array(X)))
     # test initialization of grid parameters
 
-    griddic = dict(FFS__k=[70,100],FDA__solver=['svd'],FDA__tol=[1e-5])
-    pipe.crossgrid(griddic,cv=cv.leave_x_out(pipe.Y,20,nsamples=200))
+    griddic = dict(FFS__k=[50,100],RF__n_estimators=[100,200])
+    pipe.crossgrid(griddic,cv=cv.leave_x_out(pipe.Y, 10, nsamples=200, testlst=[i for i,n in enumerate(ns) if ('4' in n or '5' in n)]))
 
     print(pipe.return_score())
     print(pipe._gridsearch.grid_scores_)
