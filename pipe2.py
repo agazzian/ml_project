@@ -5,6 +5,7 @@ Copyright of the program: Andrea Agazzi, UNIGE
 
 
 """
+import matplotlib.pyplot as plt
 
 import numpy as np
 import logging
@@ -23,7 +24,7 @@ class Pipe(object):
     """
     cvcounter = 0
 
-    def __init__(self,Xdata,Ydata,feat_names,weeks,pipe=None,griddic=None,cv=None):
+    def __init__(self,Xdata,Ydata,feat_names,weeks,pipe=None,crossval=None):
         self.X = Xdata
         self.Y = Ydata
         self.feat_names = feat_names
@@ -31,10 +32,9 @@ class Pipe(object):
         self._pipe = pipe
         self._pipelst = []
         self._bestscore = None
-        self.grid = griddic
         self._gridsearch = None
         self._biolst = [None for n in feat_names]
-        self.cv = cv
+        self.crossval = crossval
 
     def newpipe(self):
         """ if pipe is empty return true else reset all """
@@ -65,7 +65,7 @@ class Pipe(object):
         """
 
         if estimatorname == 'PCA':
-            return (estimatorname, sk.decomposition.PCA())  # @UndefinedVariable
+            return (estimatorname, sk.decomposition.PCA(copy=True))  # @UndefinedVariable
         elif estimatorname == 'FFS':
             return (estimatorname, sk.feature_selection.SelectKBest(score_func=corr_analysis))  # @UndefinedVariable
         elif estimatorname == 'L1-LogReg':
@@ -73,14 +73,14 @@ class Pipe(object):
         elif estimatorname == 'L2-LogReg':
             return (estimatorname, sk.linear_model.LogisticRegression())  # @UndefinedVariable
         elif estimatorname == 'FDA':
-            return (estimatorname, sk.discriminant_analysis.LinearDiscriminantAnalysis())  # @UndefinedVariable
+            return (estimatorname, sk.discriminant_analysis.LinearDiscriminantAnalysis(n_components = 1,solver='svd'))  # @UndefinedVariable
         elif estimatorname == 'RF':
             return (estimatorname, sk.ensemble.RandomForestClassifier())  # @UndefinedVariable
         else:
             print('Error: estimator not in the list!\n')
             return None
 
-    def crossgrid(self, griddic, cv=None):
+    def crossgrid(self, griddic, crossval=None):
         """
         perform a crossvalidation procedure for mparameters in grid and cv-sample cv
 
@@ -93,17 +93,17 @@ class Pipe(object):
             cv: crossvalidation array of the form [IDn1, IDn2,...IDnN]
         """
         # initialize cv procedure
-        if cv != None:
+        if crossval != None:
             # if cv not empty overwrite existing cv procedure
-            self.cv = cv
-        elif cv == None and self.cv == None:
+            self.crossval = crossval
+        elif crossval == None and self.crossval == None:
             # if no cv procedure has been specified set the classical l20o
-            print('ATTENTION:\tNo CV procedure specified, proceeding with reduced l20o.')
-            cv = cv.leave_x_out(self.Y,20)
+            print('ATTENTION:\tNo CV procedure specified, proceeding with reduced l20o, all weeks included.')
+            crossval = cv.leave_x_out(self.Y,20)
 
         # initialize the _gridsearch attribute
         # need to include how to create the dictionary from the input
-        self._gridsearch = sk.grid_search.GridSearchCV(self._pipe, griddic, n_jobs=-1) # @UndefinedVariable
+        self._gridsearch = sk.grid_search.GridSearchCV(self._pipe, griddic, n_jobs=-1, cv = self.crossval) # @UndefinedVariable
 
         # fit the CV grid
         self._gridsearch.fit(self.X,self.Y)
@@ -138,7 +138,7 @@ class Pipe(object):
         """
         Returns the biomarker ranking of the best performing algorithm if no other estimator is given as input
 
-        The second argument of the function (optional) can be used to decalre another
+        The second argument of the function (optional) can be used to declare another
         sk.pipeline.Pipeline object from which to extract the biomarker rankings.
         """
 
@@ -198,7 +198,7 @@ class Pipe(object):
         """
         now = datetime.now()
         with open('./results/ranks/'+'_'.join(self._pipelst)+'_'+now.strftime('%Y_%m_%d_%H_%M')+'_'+str(Pipe.cvcounter)+'.dat','w') as f:
-            f.write('# weeks: \t'+','.join(self.weeks)+'\n# pipeline:\t'+'+'.join(self._pipelst)+'\n cv:\tleave-'+str(len(list(self.cv[0][1])))+'-out \t samples: \t'+str(len(list(self.cv)))+'\n\n')
+            f.write('# weeks: \t'+','.join(self.weeks)+'\n# pipeline:\t'+'+'.join(self._pipelst)+'\n cv:\tleave-'+str(len(list(self.crossval[0][1])))+'-out \t samples: \t'+str(len(list(self.crossval)))+'\n\n')
             for l in sorted(ranks,key= lambda x: x[0],reverse=True):
                 f.write('score:\t'+str(l[0])+'\nparameters:\t'+str(l[1])+'\n'+'\n'.join([a+'\t'+b for (a,b) in sorted(zip(map(str,l[2]),self.feat_names),key = lambda x: x[0],reverse=True)])+'\n\n------------------------------------------------\n')
 
@@ -215,27 +215,36 @@ if __name__ == '__main__':
 
     wids = ['week_4','week_5','week_6','week_10']
 
-    ns, Xdata,Ydata = src.importd.importfile('../data/file.dat')
-    ns, X, Y, _ = src.importd.filterd(ns,Xdata,Ydata,wids)
-    _, names = src.importd.import_cnames('../data/file3.dat')
+    ns,Xdata,Ydata = src.importd.importfile('./data/file.dat')
+    _, X, Y, _ = src.importd.filterd(ns,Xdata,Ydata,wids)
+    _, names = src.importd.import_cnames('./data/file3.dat')
 
     # run automated tests
-
-    #run an initialization test for a pipeline with pca and fda
+    # X = np.delete(X, (120), axis=1)
+    # names = np.delete(names, (120), axis=0)
+    
+    #run an initialization test for a pipeline with ffs and fda
     pipe = Pipe(X,Y,names,wids)
-    pipe.setpipe(['FFS','RF'])
+    
+    pipe.setpipe(['PCA','FDA'])
 
     # cvcounter test
     print('Pipe.cvcounter =\t'+str(pipe.cvcounter))
 
-    print(np.shape(np.array(X)))
+    print("X size: " + str(np.shape(X)))
+    print("Y size: " + str(np.shape(Y)))
     # test initialization of grid parameters
 
-    griddic = dict(FFS__k=[50,100],RF__n_estimators=[100,200])
-    pipe.crossgrid(griddic,cv=cv.leave_x_out(pipe.Y, 10, nsamples=200, testlst=[i for i,n in enumerate(ns) if ('4' in n or '5' in n)]))
-
+    # FFS + RF dic
+    # griddic = dict(FFS__k=[50,100],RF__n_estimators=[100,200])
+    # FFS + FDA dic
+    griddic = dict(PCA__n_components = [50],PCA__whiten=[True,False],FDA__store_covariance=[True])
+    #griddic = dict();
+    pipe.crossgrid(griddic,crossval=cv.leave_x_out(pipe.Y, 20, nsamples=100, testlst=[i for i,n in enumerate(ns) if ('4' in n or '5' in n)]))
+    #pipe.crossgrid(griddic,crossval=cv.leave_x_out(pipe.Y, 20, nsamples=300))
     print(pipe.return_score())
     print(pipe._gridsearch.grid_scores_)
     print(pipe._pipe.named_steps.keys())
+    print(pipe._pipe)
     pipe.return_rank()
     pipe.return_ranks(.9,printtofile=True)
