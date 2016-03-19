@@ -222,10 +222,10 @@ if __name__ == '__main__':
     # run automated tests
     # X = np.delete(X, (120), axis=1)
     # names = np.delete(names, (120), axis=0)
-    
+
     #run an initialization test for a pipeline with ffs and fda
     pipe = Pipe(X,Y,names,wids)
-    
+
     pipe.setpipe(['PCA','FDA'])
 
     # cvcounter test
