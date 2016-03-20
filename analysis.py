@@ -32,11 +32,11 @@ if __name__ == '__main__':
     ns, X, Y, _ = src.importd.filterd(ns,Xdata,Ydata,wids)
     _, names = src.importd.import_cnames('data/file3.dat')
     # run automated tests
-    pipelst = [['FFS','FDA'],['FFS','L1-LogReg'],['PCA','RF'],['PCA','FDA'],['PCA','L1-LogReg'],['FFS','RF'],['PCA','FFS']]
+    pipelst = [['FFS','FDA'],['FFS','L1LogReg'],['PCA','RF'],['PCA','FDA'],['PCA','L1LogReg'],['FFS','RF'],['PCA','FFS']]
     if len(sys.argv) != 1 and sys.argv[1] == 's':
-        pardict = dict(FDA__store_covariance=[True],FFS__k=range(10,211,50),RF__n_estimators=range(10,311,100),PCA__whiten=[True,False],PCA__n_components=range(10,151,20),LogReg__C=list(np.logspace(-9,0,10)))
+        pardict = dict(FDA__store_covariance=[True],FFS__k=range(10,211,50),RF__n_estimators=range(10,311,100),PCA__whiten=[True,False],PCA__n_components=range(10,151,20),L1LogReg__C=list(np.logspace(-9,0,10)))
     else:
-        pardict = dict(FDA__store_covariance=[True],FFS__k=range(10,201,5),RF__n_estimators=range(10,301,30),PCA__whiten=[True,False],PCA__n_components=range(10,201,5),LogReg__C=list(np.logspace(-9,0)))
+        pardict = dict(FDA__store_covariance=[True],FFS__k=range(10,201,5),RF__n_estimators=range(10,301,30),PCA__whiten=[True,False],PCA__n_components=range(10,201,5),L1LogReg__C=list(np.logspace(-9,0)))
 
     for pipeel in pipelst:
         #run an initialization test for a pipeline with pca and fda
@@ -54,4 +54,6 @@ if __name__ == '__main__':
                 griddic[p] = pardict[p]
 
         pipe.crossgrid(griddic,crossval=cv.leave_x_out(pipe.Y, 10, nsamples=200, testlst=[i for i,n in enumerate(ns) if ('4' in n or '5' in n)]))
-    # test initialization of grid parameters
+        pipe.return_score()
+        pipe.return_rank()
+        pipe.return_ranks(.9,printtofile=True)

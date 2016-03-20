@@ -68,16 +68,16 @@ class Pipe(object):
             return (estimatorname, sk.decomposition.PCA(copy=True))  # @UndefinedVariable
         elif estimatorname == 'FFS':
             return (estimatorname, sk.feature_selection.SelectKBest(score_func=corr_analysis))  # @UndefinedVariable
-        elif estimatorname == 'L1-LogReg':
+        elif estimatorname == 'L1LogReg':
             return (estimatorname, sk.linear_model.LogisticRegression(penalty='l1'))  # @UndefinedVariable
-        elif estimatorname == 'L2-LogReg':
+        elif estimatorname == 'L2LogReg':
             return (estimatorname, sk.linear_model.LogisticRegression())  # @UndefinedVariable
         elif estimatorname == 'FDA':
             return (estimatorname, sk.discriminant_analysis.LinearDiscriminantAnalysis(n_components = 1,solver='svd'))  # @UndefinedVariable
         elif estimatorname == 'RF':
             return (estimatorname, sk.ensemble.RandomForestClassifier())  # @UndefinedVariable
         else:
-            print('Error: estimator not in the list!\n')
+            print('Error: estimator '+estimatorname+' not in the list!\n')
             return None
 
     def crossgrid(self, griddic, crossval=None):
@@ -183,7 +183,7 @@ class Pipe(object):
 
                 print(score_triple[0])
                 estimator = pipetofit.set_params(**score_triple[0]).fit(self.X,self.Y)
-                ranks.append((score_triple[1],score_triple[0],pipe.return_rank(estimator)))
+                ranks.append((score_triple[1],score_triple[0],self.return_rank(estimator)))
 
         if printtofile == True:
             self.save_ranks(ranks)
