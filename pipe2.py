@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 
 """
-Copyright of the program: Andrea Agazzi, UNIGE
+Copyright of the program:   Andrea Agazzi, UNIGE
+                            Vincent Deo, Stanford University
 
 
 """
@@ -200,7 +201,7 @@ class Pipe(object):
         with open('./results/ranks/'+'_'.join(self._pipelst)+'_'+now.strftime('%Y_%m_%d_%H_%M')+'_'+str(Pipe.cvcounter)+'.dat','w') as f:
             f.write('# weeks: \t'+','.join(self.weeks)+'\n# pipeline:\t'+'+'.join(self._pipelst)+'\n cv:\tleave-'+str(len(list(self.crossval[0][1])))+'-out \t samples: \t'+str(len(list(self.crossval)))+'\n\n')
             for l in sorted(ranks,key= lambda x: x[0],reverse=True):
-                f.write('score:\t'+str(l[0])+'\nparameters:\t'+str(l[1])+'\n'+'\n'.join([a+'\t'+b for (a,b) in sorted(zip(map(str,l[2]),self.feat_names),key = lambda x: x[0],reverse=True)])+'\n\n------------------------------------------------\n')
+                f.write('score:\t'+str(l[0])+'\nparameters:\t'+str(l[1])+'\n'+'\n'.join([a+'\t'+b+'\t'+c for (a,b,c) in sorted(zip(map(str,l[2]),map(str,range(len(l[2]))),self.feat_names),key = lambda x: abs(float(x[0])),reverse=True)])+'\n\n------------------------------------------------\n')
 
 
 def corr_analysis(Xdata,Ydata):

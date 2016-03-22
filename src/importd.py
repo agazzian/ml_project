@@ -5,7 +5,6 @@ import numpy as np
 import cmath as math
 from functools import reduce
 
-
 # import data
 def importfile(filename):
 	"""
@@ -30,6 +29,41 @@ def importfile(filename):
 	print('Import:\tcomplete')
 	return nlst, Xdata, Ydata
 
+# import data
+def import_results(filename):
+	"""
+	Imports the results of analysis.py for statistical analysis and plotting
+	"""
+	with open(filename,'r') as datafile:
+
+		resultlst = []
+		ranklst = []
+		scorelst = []
+		paramlst = []
+
+		scorestr = ''
+		paramstr = ''
+
+		for i,line in enumerate(datafile):
+			if line[0] in ['#','\n',' ']:
+				continue
+			elif line[0] == '-':
+				resultlst.append(tmp1)
+				ranklst.append(tmp2)
+				scorelst.append(scorestr)
+				paramlst.append(paramstr)
+			elif 'score' in line:
+				tmp1 = []
+				tmp2 = []
+				scorestr = line.strip()
+			elif 'parameters' in line:
+				paramstr = line.strip()
+			else:
+				tmp1.append(float(line.strip().split('\t')[0]))
+				tmp2.append(int(line.strip().split('\t')[1]))
+
+	return resultlst, ranklst, scorelst, paramlst
+
 
 def import_cnames(filename):
 	"""
@@ -53,13 +87,13 @@ def casesn(n):
 	returns a number associated to each of the weeks in the range (1; 4)
 	"""
 	# TODO change to integer switch
-	if '4' in n:
+	if 'week_4' in n or 'week4' in n:
 		return 0
-	elif '5' in n:
+	elif 'week_5' in n or 'week5' in n:
 		return 1
-	elif '6' in n:
+	elif 'week_6' in n or 'week6' in n:
 		return 2
-	elif '10' in n:
+	elif 'week_10' in n or 'week10' in n:
 		return 3
 	else:
 		print('error:'+str(n))
