@@ -28,7 +28,7 @@ if __name__ == '__main__':
     if 'p' in sys.argv[1::]:
         files = [('data/file_plasma.dat','data/file3_plasma.dat')]
     elif 'a' in sys.argv[1::]:
-        files = [('data/file.dat','data/file2.dat'),('data/file_plasma.dat','data/file3_plasma.dat')]
+        files = [('data/file.dat','data/file3.dat'),('data/file_plasma.dat','data/file3_plasma.dat')]
     else:
         [('data/file.dat','data/file2.dat')]
     print files
@@ -36,10 +36,7 @@ if __name__ == '__main__':
     for (file1,file2) in files:
         wids = ['week_4','week_5','week_6','week_10','week4','week5','week6','week10']
         ns, Xdata,Ydata = src.importd.importfile(file1)
-        print(len(Ydata))
-        print(len(ns))
         ns, X, Y, _ = src.importd.filterd(ns,Xdata,Ydata,wids)
-        print(ns)
         _, names = src.importd.import_cnames(file2)
         # run automated tests
         pipelst = [['FFS','L1LogReg'],['PCA','L1LogReg'],['FFS','FDA'],['PCA','FDA'],['FFS','RF'],['PCA','RF']]
@@ -63,7 +60,7 @@ if __name__ == '__main__':
                 if True in [True if q in p else False for q in pipeel]:
                     griddic[p] = pardict[p]
 
-            pipe.crossgrid(griddic,crossval=cv.leave_x_out(pipe.Y, 10, nsamples=200, testlst=[i for i,n in enumerate(ns) if ('4' in n or '5' in n)]))
+            pipe.crossgrid(griddic,crossval=cv.leave_x_out(pipe.Y, 10, nsamples=200, testlst=[i for i,n in enumerate(ns) if ('week_4' in n or 'week_5' in n or 'week4' in n or 'week5' in n)]))
             pipe.return_score()
             pipe.return_rank()
             pipe.return_ranks(.9,printtofile=True)

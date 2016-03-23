@@ -109,5 +109,5 @@ def filterd(nlst, Xdata, Ydata, wids=['week_4','week_5','week_6','week_10']):
 	- datas of the different families distinguishing between the different weeks: Ydata2 has value from 0 to 7, where the first 4 numbers correspond to "ko" in the corresponding weeks and the second set of 4 elements corresponds to the "ctrl" of the corresponding weeks.
 	"""
 	y2 = [4*y+casesn(nlst[i]) for i,y in enumerate(Ydata)]
-	selectlst = [reduce(lambda x,y:x or y,[wid in n for wid in wids]) for n in nlst]
-	return [n for i,n in enumerate(nlst) if selectlst[i]],np.array([x for i,x in enumerate(Xdata) if selectlst[i]]),np.array([y for i,y in enumerate(Ydata) if selectlst[i]]),np.array([y for i,y in enumerate(y2) if selectlst[i]])
+	selectlst = [reduce(lambda x,y: x or y, [wid in n for wid in wids]) for n in nlst]
+	return [n for i,n in enumerate(nlst) if selectlst[i]], np.array([x for i,x in enumerate(Xdata) if selectlst[i]]), np.array([y for i,y in enumerate(Ydata) if selectlst[i]]), np.array([y for i,y in enumerate(y2) if selectlst[i]])

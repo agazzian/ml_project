@@ -241,7 +241,7 @@ if __name__ == '__main__':
     # FFS + FDA dic
     griddic = dict(PCA__n_components = [50],PCA__whiten=[True,False],FDA__store_covariance=[True])
     #griddic = dict();
-    pipe.crossgrid(griddic,crossval=cv.leave_x_out(pipe.Y, 20, nsamples=100, testlst=[i for i,n in enumerate(ns) if ('4' in n or '5' in n)]))
+    pipe.crossgrid(griddic,crossval=cv.leave_x_out(pipe.Y, 20, nsamples=100, testlst=[i for i,n in enumerate(ns) if ('week_4' in n or 'week_5' in n or 'week4' in n or 'week5' in n)]))
     #pipe.crossgrid(griddic,crossval=cv.leave_x_out(pipe.Y, 20, nsamples=300))
     print(pipe.return_score())
     print(pipe._gridsearch.grid_scores_)

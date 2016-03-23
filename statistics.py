@@ -29,20 +29,28 @@ def function1(n):
 
         boxplotlst = [[],[],[],[],[],[],[],[]]
 
-        testlst = [[],[]]
+        testlst4 = [[],[]]
+        testlst5 = [[],[]]
 
         for i,j in enumerate(y2):
             boxplotlst[j].append(X[i][n])
 
             if j==0:
-                testlst[0].append(X[i][n])
+                testlst4[0].append(X[i][n])
             elif j == 4:
-                testlst[1].append(X[i][n])
+                testlst4[1].append(X[i][n])
+            if j==1:
+                testlst5[0].append(X[i][n])
+            elif j == 5:
+                testlst5[1].append(X[i][n])
 
-        print(testlst)
-        print(scipy.stats.ranksums(testlst[0],testlst[1]))
-        print(scipy.stats.ttest_ind(testlst[0],testlst[1]))
+        print('week4 statistics:')
+        print(scipy.stats.ranksums(testlst4[0],testlst4[1]))
+        print(scipy.stats.ttest_ind(testlst4[0],testlst4[1]))
 
+        print('week5 statistics:')
+        print(scipy.stats.ranksums(testlst5[0],testlst5[1]))
+        print(scipy.stats.ttest_ind(testlst5[0],testlst5[1]))
 
         plt.boxplot(boxplotlst)
         plt.show()
@@ -50,7 +58,7 @@ def function1(n):
 
 if __name__ == '__main__':
 
-    filename = './results/ranks/FFS_L1LogReg_2016_03_22_20_45_0.dat'
+    filename = './results/ranks/FFS_L1LogReg_2016_03_23_09_48_0.dat'
     resultlst, ranklst, _, paramlst = src.importd.import_results(filename)
     function1(120)
     for i,lst in enumerate(resultlst):
